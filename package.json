@@ -22,12 +22,18 @@
     "@tabler/icons-react": "^3.11.0",
     "@tanstack/react-query": "^5.51.11",
     "@tanstack/react-query-next-experimental": "^5.51.11",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "daisyui": "^4.12.10",
+    "framer-motion": "^12.0.5",
     "jotai": "^2.9.1",
+    "lucide-react": "^0.474.0",
     "next": "14.2.5",
     "react": "^18",
     "react-dom": "^18",
-    "react-hot-toast": "^2.4.1"
+    "react-hot-toast": "^2.4.1",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.0",
@@ -47,11 +53,16 @@
     "rename": {
       "counter": {
         "to": "{{name}}",
-        "paths": ["anchor", "src"]
+        "paths": [
+          "anchor",
+          "src"
+        ]
       },
       "placeholder": {
         "to": "{{name}}",
-        "paths": ["src"]
+        "paths": [
+          "src"
+        ]
       }
     },
     "instructions": [
