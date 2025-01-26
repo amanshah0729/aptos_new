@@ -1,15 +1,137 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
+// Sample chat messages to randomly pull from
+const SAMPLE_MESSAGES = [
+  // General reactions
+  "Just joined the stream! 🎉",
+  "This is getting intense 👀",
+  "Can't believe what I'm seeing",
+  "LETS GOOOOO",
+  "🚀🚀🚀",
+  "gg",
+  "wow",
+  "insane",
+  "THIS IS IT",
+  
+  // Game-specific comments
+  "Count going up fast",
+  "Anyone else seeing this pattern?",
+  "I'm calling 5 next",
+  "It's gonna crash soon",
+  "Hold strong everyone 💎",
+  "Perfect timing to join",
+  "Easy money today",
+  "The trend is clear",
+  "Who's winning so far?",
+  
+  // Questions and discussions
+  "What's everyone's strategy?",
+  "New meta?",
+  "How long have you been playing?",
+  "First time here, this is awesome",
+  "Anyone else from yesterday's stream?",
+  "What's the max today?",
+  "Did anyone catch that last round?",
+  
+  // Reactions to events
+  "Called it!",
+  "No way!!",
+  "That was close",
+  "Big win incoming",
+  "RIP to those who sold early",
+  "Perfect exit",
+  "Should have waited",
+  "This is the way",
+  
+  // Emotes and short reactions
+  "🔥",
+  "💎🙌",
+  "📈",
+  "🎯",
+  "👀",
+  "🚀",
+  "💪",
+  "LFG!!!",
+  "W",
+];
+
+const SAMPLE_USERNAMES = [
+  // Gaming style names
+  "Player123", "ProGamer99", "StreamNinja", "GamingLegend",
+  // Crypto style names
+  "CryptoWhale", "DiamondHands", "MoonWatcher", "Hodler_Pro",
+  // Betting style names
+  "LuckyStaker", "BetMaster", "WinnerCircle", "HighRoller",
+  // Strategy style names
+  "AlphaSeeker", "PatternHunter", "DataWizard", "TrendSpotter",
+  // Fun names
+  "Rocket_Man", "ChartWatcher", "CoolCat", "StreamLord",
+  "BigBrain", "WiseTrader", "StatsGuru", "MathGenius"
+];
+
 export default function StreamView() {
   const [count, setCount] = useState<number>(0)
-  const [messages, setMessages] = useState<string[]>([])
+  const [messages, setMessages] = useState<Array<{ id: number; username: string; text: string; timestamp: Date }>>([])
   const [totalWinnings, setTotalWinnings] = useState<number>(0)
   const [isStakeModalOpen, setIsStakeModalOpen] = useState(false)
   
+  // Add ref for chat container
+  const chatContainerRef = useRef<HTMLDivElement>(null)
+
+  // Auto scroll to bottom when messages change
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+    }
+  }, [messages])
+
+  // Add fake messages periodically
+  useEffect(() => {
+    const addMessage = () => {
+      const randomMessage = SAMPLE_MESSAGES[Math.floor(Math.random() * SAMPLE_MESSAGES.length)]
+      const randomUsername = SAMPLE_USERNAMES[Math.floor(Math.random() * SAMPLE_USERNAMES.length)]
+      
+      setMessages(prev => [
+        ...prev.slice(-49),
+        {
+          id: Date.now(),
+          username: randomUsername,
+          text: randomMessage,
+          timestamp: new Date()
+        }
+      ])
+    }
+
+    // Add initial messages
+    for (let i = 0; i < 8; i++) {
+      setTimeout(() => addMessage(), i * 200)
+    }
+
+    // Add new message every 0.5-2 seconds
+    const interval = setInterval(() => {
+      const delay = Math.random() * (2000 - 500) + 500 // Random delay between 0.5-2 seconds
+      setTimeout(addMessage, delay)
+    }, 1000)
+
+    // Occasionally add burst of messages (simulating exciting moments)
+    const burstInterval = setInterval(() => {
+      if (Math.random() < 0.3) { // 30% chance of burst
+        for (let i = 0; i < Math.floor(Math.random() * 3) + 2; i++) {
+          setTimeout(addMessage, i * 100)
+        }
+      }
+    }, 5000)
+
+    return () => {
+      clearInterval(interval)
+      clearInterval(burstInterval)
+    }
+  }, [])
+
   useEffect(() => {
     const fetchCount = async () => {
       const mockCount = Math.floor(Math.random() * 100)
@@ -77,25 +199,55 @@ export default function StreamView() {
               {/* Chat Section */}
               <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col space-y-4">
                 <div className="h-[300px] flex flex-col">
-                  <h2 className="text-xl font-bold mb-4">Live Chat</h2>
-                  <div className="flex-1 overflow-y-auto space-y-2 mb-4">
-                    {messages.length === 0 ? (
-                      <p className="text-gray-400 text-center">Discussion on this kino starts!</p>
-                    ) : (
-                      messages.map((msg, i) => (
-                        <div key={i} className="bg-gray-700/50 p-2 rounded">
-                          {msg}
-                        </div>
-                      ))
-                    )}
+                  <h2 className="text-xl font-bold mb-2">Live Chat</h2>
+                  <div 
+                    ref={chatContainerRef}
+                    className="flex-1 overflow-y-auto space-y-1 mb-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
+                  >
+                    <AnimatePresence initial={false}>
+                      {messages.map((msg) => (
+                        <motion.div
+                          key={msg.id}
+                          initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                          animate={{ 
+                            opacity: 1, 
+                            y: 0, 
+                            scale: 1,
+                            transition: {
+                              opacity: { duration: 0.2, ease: "easeOut" },
+                              y: { duration: 0.2, ease: "easeOut" },
+                              scale: { duration: 0.15, ease: "easeOut" }
+                            }
+                          }}
+                          exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.1 } }}
+                          className="bg-gray-700/50 py-1 px-2 rounded text-sm origin-bottom"
+                        >
+                          <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ 
+                              opacity: 1,
+                              transition: { duration: 0.2, delay: 0.1 }
+                            }}
+                          >
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="text-blue-400 font-medium">{msg.username}</span>
+                              <span className="text-gray-400">
+                                {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            <div className="text-white text-sm">{msg.text}</div>
+                          </motion.div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
                   </div>
                   <div className="flex gap-2">
                     <input 
                       type="text"
                       placeholder="Type a message..."
-                      className="flex-1 bg-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 bg-gray-700 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                     />
-                    <button className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
+                    <button className="bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg transition-colors text-sm">
                       Send
                     </button>
                   </div>
