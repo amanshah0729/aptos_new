@@ -1,6 +1,7 @@
 'use client'
 
 import {WalletButton} from '@/components/solana/solana-provider'
+import { RiPokerSpadesFill } from 'react-icons/ri'
 
 const videos = [
   { id: 1, title: "Nature Scenery", author: "NatureFilms" },
@@ -16,7 +17,10 @@ export default function VideoFeed() {
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-[2000px] w-full mx-auto">
         <div className="flex justify-between items-center p-4">
-          <h1 className="text-2xl font-bold">Fuck The House!</h1>
+          <div className="flex items-center gap-3">
+            <RiPokerSpadesFill className="text-3xl" />
+            <h1 className="text-2xl font-bold">Fuck The House!</h1>
+          </div>
           <WalletButton />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 p-4">
