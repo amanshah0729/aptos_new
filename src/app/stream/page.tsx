@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import NavHeader from '@/components/ui/nav-header'
 
 // Sample chat messages to randomly pull from
 const SAMPLE_MESSAGES = [
@@ -143,22 +144,16 @@ export default function StreamView() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-black text-white p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header Navigation */}
-        <nav className="flex justify-between mb-6 border-b border-gray-800 pb-4">
-          <div>People</div>
-          <div>About</div>
-          <div>Money Earned</div>
-        </nav>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Main Stream Section - Takes up 3 columns */}
+    <div className="min-h-screen bg-black text-white flex flex-col">
+      <NavHeader />
+      <div className="flex-1 max-w-[2000px] w-full mx-auto p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-120px)]">
+          {/* Main Stream Section */}
           <div className="lg:col-span-3 min-w-0">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="w-full aspect-video bg-gray-800 rounded-lg relative h-[600px] overflow-hidden"
+              className="w-full h-[calc(100vh-140px)] bg-gray-800 rounded-lg relative overflow-hidden"
             >
               <div className="w-full h-full flex items-center justify-center">
                 <span className="text-2xl">Live Stream</span>
@@ -183,10 +178,10 @@ export default function StreamView() {
             <motion.div 
               initial={{ x: 20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              className="space-y-4"
+              className="space-y-4 h-[calc(100vh-140px)] flex flex-col overflow-hidden"
             >
               {/* Player History Section */}
-              <div className="bg-gray-800/50 rounded-lg p-4">
+              <div className="bg-gray-800/50 rounded-lg p-4 shrink-0">
                 <h2 className="text-xl font-bold mb-4">Player History</h2>
                 <div className="bg-gray-900/50 p-4 rounded-lg">
                   <div className="text-gray-400 text-sm mb-1">Total Winnings</div>
@@ -197,51 +192,53 @@ export default function StreamView() {
               </div>
 
               {/* Chat Section */}
-              <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col space-y-4">
-                <div className="h-[300px] flex flex-col">
-                  <h2 className="text-xl font-bold mb-2">Live Chat</h2>
-                  <div 
-                    ref={chatContainerRef}
-                    className="flex-1 overflow-y-auto space-y-1 mb-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
-                  >
-                    <AnimatePresence initial={false}>
-                      {messages.map((msg) => (
+              <div className="bg-gray-800/50 rounded-lg p-4 flex flex-col min-h-0 flex-1">
+                <h2 className="text-xl font-bold mb-2 shrink-0">Live Chat</h2>
+                <div 
+                  ref={chatContainerRef}
+                  className="flex-1 overflow-y-auto min-h-0 space-y-1 mb-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
+                >
+                  <AnimatePresence initial={false}>
+                    {messages.map((msg) => (
+                      <motion.div
+                        key={msg.id}
+                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                        animate={{ 
+                          opacity: 1, 
+                          y: 0, 
+                          scale: 1,
+                          transition: {
+                            opacity: { duration: 0.2, ease: "easeOut" },
+                            y: { duration: 0.2, ease: "easeOut" },
+                            scale: { duration: 0.15, ease: "easeOut" }
+                          }
+                        }}
+                        exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.1 } }}
+                        className="bg-gray-700/50 py-1 px-2 rounded text-sm origin-bottom"
+                      >
                         <motion.div
-                          key={msg.id}
-                          initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                          initial={{ opacity: 0 }}
                           animate={{ 
-                            opacity: 1, 
-                            y: 0, 
-                            scale: 1,
-                            transition: {
-                              opacity: { duration: 0.2, ease: "easeOut" },
-                              y: { duration: 0.2, ease: "easeOut" },
-                              scale: { duration: 0.15, ease: "easeOut" }
-                            }
+                            opacity: 1,
+                            transition: { duration: 0.2, delay: 0.1 }
                           }}
-                          exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.1 } }}
-                          className="bg-gray-700/50 py-1 px-2 rounded text-sm origin-bottom"
                         >
-                          <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ 
-                              opacity: 1,
-                              transition: { duration: 0.2, delay: 0.1 }
-                            }}
-                          >
-                            <div className="flex items-center gap-2 text-xs">
-                              <span className="text-blue-400 font-medium">{msg.username}</span>
-                              <span className="text-gray-400">
-                                {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                            <div className="text-white text-sm">{msg.text}</div>
-                          </motion.div>
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-blue-400 font-medium">{msg.username}</span>
+                            <span className="text-gray-400">
+                              {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <div className="text-white text-sm">{msg.text}</div>
                         </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                  <div className="flex gap-2">
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+
+                {/* Chat Input and Stake Button Container */}
+                <div className="shrink-0">
+                  <div className="flex gap-2 mb-4">
                     <input 
                       type="text"
                       placeholder="Type a message..."
@@ -251,36 +248,34 @@ export default function StreamView() {
                       Send
                     </button>
                   </div>
-                </div>
 
-                {/* Stake Button - Now below chat in the same container */}
-                <div className="pt-4 border-t border-gray-700">
-                  <motion.button 
-                    onClick={() => setIsStakeModalOpen(true)}
-                    className="relative group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 
-                    w-full px-8 py-5 rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl 
-                    border-2 border-transparent hover:border-blue-400/50"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <motion.span 
-                      className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-xl blur-xl"
-                      animate={{
-                        scale: [1, 1.1, 1],
-                        opacity: [0.5, 0.8, 0.5],
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                    />
-                    <span className="relative text-xl font-bold text-white tracking-wider">
-                      Place Your Stake
-                    </span>
-                  </motion.button>
+                  {/* Stake Button */}
+                  <div className="pt-4 border-t border-gray-700">
+                    <motion.button 
+                      onClick={() => setIsStakeModalOpen(true)}
+                      className="relative group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 
+                      w-full px-8 py-5 rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl 
+                      border-2 border-transparent hover:border-blue-400/50"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <motion.span 
+                        className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-xl blur-xl"
+                        animate={{
+                          scale: [1, 1.1, 1],
+                          opacity: [0.5, 0.8, 0.5],
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      />
+                      <span className="relative text-xl font-bold text-white tracking-wider">
+                        Place Your Stake
+                      </span>
+                    </motion.button>
+                  </div>
                 </div>
               </div>
             </motion.div>
