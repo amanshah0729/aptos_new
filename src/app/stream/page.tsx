@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from 'react'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import NavHeader from '@/components/ui/nav-header'
+import { useSearchParams } from 'next/navigation'
+import { LivestreamPlayer } from '@/components/livestream/livestream-player'
 
 // Sample chat messages to randomly pull from
 const SAMPLE_MESSAGES = [
@@ -74,7 +76,15 @@ const SAMPLE_USERNAMES = [
   "BigBrain", "WiseTrader", "StatsGuru", "MathGenius"
 ];
 
-export default function StreamView() {
+export default function StreamPage() {
+  const searchParams = useSearchParams()
+  const videoUrl = searchParams.get('videoUrl') || ''
+  const title = searchParams.get('title') || ''
+  const author = searchParams.get('author') || ''
+  const startTime = Number(searchParams.get('startTime')) || 0
+  const endTime = Number(searchParams.get('endTime')) || undefined
+  const trueCount = Number(searchParams.get('trueCount')) || 0
+
   const [count, setCount] = useState<number>(0)
   const [messages, setMessages] = useState<Array<{ id: number; username: string; text: string; timestamp: Date }>>([])
   const [totalWinnings, setTotalWinnings] = useState<number>(0)
@@ -133,16 +143,6 @@ export default function StreamView() {
     }
   }, [])
 
-  useEffect(() => {
-    const fetchCount = async () => {
-      const mockCount = Math.floor(Math.random() * 100)
-      setCount(mockCount)
-      setTotalWinnings(Math.floor(Math.random() * 10000))
-    }
-    
-    fetchCount()
-  }, [])
-
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
       <NavHeader />
@@ -156,7 +156,13 @@ export default function StreamView() {
               className="w-full h-[calc(100vh-140px)] bg-gray-800 rounded-lg relative overflow-hidden"
             >
               <div className="w-full h-full flex items-center justify-center">
-                <span className="text-2xl">Live Stream</span>
+                <LivestreamPlayer 
+                  videoUrl={videoUrl}
+                  title={title}
+                  startTime={startTime}
+                  endTime={endTime}
+                  className="w-full aspect-video relative"
+                />
               </div>
               
               {/* Live Count Overlay */}
@@ -166,8 +172,10 @@ export default function StreamView() {
                 className="absolute bottom-4 right-4 p-3 bg-gray-900/80 rounded-lg backdrop-blur-sm"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Live Count:</span>
-                  <span className="text-xl font-mono text-blue-400">{count}</span>
+                  <span className="text-sm font-medium">True Count:</span>
+                  <span className={`text-xl font-mono ${trueCount >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {trueCount}
+                  </span>
                 </div>
               </motion.div>
             </motion.div>

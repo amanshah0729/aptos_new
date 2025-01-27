@@ -2,17 +2,66 @@
 
 import NavHeader from '@/components/ui/nav-header'
 import LoadingScreen from '@/components/ui/loading-screen'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
+import { LivestreamPlayer } from '@/components/livestream/livestream-player'
 
 const videos = [
-  { id: 1, title: "Nature Scenery", author: "NatureFilms" },
-  { id: 2, title: "City Timelapse", author: "UrbanExplorer" },
-  { id: 3, title: "Cooking Tutorial", author: "ChefMaster" },
-  { id: 4, title: "Fitness Workout", author: "FitLife" },
-  { id: 5, title: "Travel Vlog", author: "Wanderlust" },
-  { id: 6, title: "Tech Review", author: "TechGuru" },
+  { 
+    id: 1, 
+    title: "Im boutta make so much money", 
+    author: "SlotMaster",
+    videoUrl: "/videos/slot-win-1.mp4",
+    startTime: 10,
+    endTime: 60,
+    trueCount: 6
+  },
+  { 
+    id: 2, 
+    title: "fuck the houseeeeee", 
+    author: "Dude Luck 23",
+    videoUrl: "/videos/dudeLuck.mp4",
+    startTime: 20,
+    endTime: 80,
+    trueCount: -3
+  },
+  { 
+    id: 3, 
+    title: "bet on me", 
+    author: "Mr. Hand Pay",
+    videoUrl: "/videos/mr.handPay.mp4",
+    startTime: 30,
+    endTime: 90,
+    trueCount: 0
+  },
+  { 
+    id: 4, 
+    title: "holy shit im on a streak", 
+    author: "Vegas Matt",
+    videoUrl: "/videos/vegasMatt.mp4",
+    startTime: 500,
+    endTime: 1000,
+    trueCount: 0
+  },
+  { 
+    id: 5, 
+    title: "screw casinos", 
+    author: "Bro Wins",
+    videoUrl: "/videos/broWins.mp4",
+    startTime: 500,
+    endTime: 1000,
+    trueCount: 0
+  },
+  { 
+    id: 6, 
+    title: "top G on top", 
+    author: "Vegas Gamblers",
+    videoUrl: "/videos/vegasGamblers.mp4",
+    startTime: 500,
+    endTime: 1000,
+    trueCount: 0
+  },
 ]
 
 const container = {
@@ -38,10 +87,20 @@ const item = {
   }
 }
 
+function getRandomShift(): number {
+  const shift = Math.floor(Math.random() * 4) - 2
+  return shift === 0 ? 1 : shift
+}
+
 export default function VideoFeed() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
+  const [videoStates, setVideoStates] = useState(videos.map(video => ({
+    ...video,
+    trueCount: video.trueCount
+  })))
 
+  // Handle loading screen
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false)
@@ -49,6 +108,39 @@ export default function VideoFeed() {
 
     return () => clearTimeout(timer)
   }, [])
+
+  // Handle true count updates
+  useEffect(() => {
+    const intervals = videoStates.map((video, index) => {
+      return setInterval(() => {
+        setVideoStates(prev => {
+          const newStates = [...prev]
+          const shift = getRandomShift()
+          newStates[index] = {
+            ...newStates[index],
+            trueCount: newStates[index].trueCount + shift
+          }
+          return newStates
+        })
+      }, Math.random() * 5000 + 5000)
+    })
+
+    return () => {
+      intervals.forEach(interval => clearInterval(interval))
+    }
+  }, [])
+
+  const handleVideoClick = (video: typeof videoStates[0], currentTime: number) => {
+    const params = new URLSearchParams({
+      videoUrl: video.videoUrl,
+      title: video.title,
+      author: video.author,
+      startTime: String(currentTime),
+      endTime: String(video.endTime),
+      trueCount: String(video.trueCount)
+    })
+    router.push(`/stream?${params.toString()}`)
+  }
 
   return (
     <>
@@ -66,12 +158,12 @@ export default function VideoFeed() {
           initial="hidden"
           animate="show"
         >
-          {videos.map((video) => (
+          {videoStates.map((video) => (
             <motion.div
               key={video.id}
               variants={item}
               className="bg-gray-800 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-700 transition-colors"
-              onClick={() => router.push('/stream')}
+              onClick={() => handleVideoClick(video, video.startTime)}
               whileHover={{ 
                 scale: 1.02,
                 transition: { duration: 0.2 }
@@ -79,17 +171,15 @@ export default function VideoFeed() {
               whileTap={{ scale: 0.98 }}
             >
               <div className="aspect-video bg-gray-900 relative">
-                <motion.div 
-                  className="absolute bottom-2 right-2 bg-red-600 px-2 py-1 rounded text-sm"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ 
-                    opacity: 1, 
-                    scale: 1,
-                    transition: { delay: 0.5, duration: 0.3 }
+                <LivestreamPlayer 
+                  videoUrl={video.videoUrl}
+                  title={video.title}
+                  startTime={video.startTime}
+                  endTime={video.endTime}
+                  onTimeUpdate={(currentTime) => {
+                    video.currentTime = currentTime
                   }}
-                >
-                  LIVE
-                </motion.div>
+                />
               </div>
               <motion.div 
                 className="p-4"
@@ -106,22 +196,23 @@ export default function VideoFeed() {
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-400">True Count:</span>
                       <motion.span 
-                        className={`font-mono text-lg ${Math.random() < 0.5 ? 'text-red-500' : 'text-green-500'}`}
-                        initial={{ opacity: 0, x: -10 }}
+                        key={video.trueCount}
+                        className={`font-mono text-lg ${video.trueCount >= 0 ? 'text-green-500' : 'text-red-500'}`}
+                        initial={{ opacity: 0.5, scale: 0.95 }}
                         animate={{ 
                           opacity: 1, 
-                          x: 0,
-                          transition: { delay: 0.3, duration: 0.3 }
+                          scale: 1,
+                          transition: { duration: 0.3 }
                         }}
                       >
-                        {Math.floor(Math.random() * 21) - 10}
+                        {video.trueCount}
                       </motion.span>
                     </div>
                     <motion.button 
                       className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-8 rounded-lg transition-colors"
                       onClick={(e) => {
                         e.stopPropagation()
-                        console.log(`Staking for video ${video.id}`)
+                        handleVideoClick(video, video.currentTime || video.startTime)
                       }}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
