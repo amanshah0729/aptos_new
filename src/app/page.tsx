@@ -4,7 +4,7 @@ import NavHeader from '@/components/ui/nav-header'
 import LoadingScreen from '@/components/ui/loading-screen'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { LivestreamPlayer } from '@/components/livestream/livestream-player'
 
 const videos = [
@@ -64,6 +64,18 @@ const videos = [
   },
 ]
 
+// Move types outside component
+interface Video {
+  id: number
+  title: string
+  author: string
+  videoUrl: string
+  startTime: number
+  endTime: number
+  trueCount: number
+}
+
+// Move animation variants outside component
 const container = {
   hidden: { opacity: 0 },
   show: {
@@ -87,50 +99,41 @@ const item = {
   }
 }
 
+// Separate helper function
 function getRandomShift(): number {
-  const shift = Math.floor(Math.random() * 4) - 2
-  return shift === 0 ? 1 : shift
+  return Math.floor(Math.random() * 4) - 2 || 1
 }
 
 export default function VideoFeed() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
-  const [videoStates, setVideoStates] = useState(videos.map(video => ({
-    ...video,
-    trueCount: video.trueCount
-  })))
+  const [videoStates, setVideoStates] = useState<Video[]>(videos)
 
-  // Handle loading screen
+  // Simplified loading effect
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1350)
-
+    const timer = setTimeout(() => setIsLoading(false), 1350)
     return () => clearTimeout(timer)
   }, [])
 
-  // Handle true count updates
+  // Optimized true count updates
   useEffect(() => {
-    const intervals = videoStates.map((video, index) => {
-      return setInterval(() => {
+    const intervals = videoStates.map((_, index) => 
+      setInterval(() => {
         setVideoStates(prev => {
           const newStates = [...prev]
-          const shift = getRandomShift()
           newStates[index] = {
             ...newStates[index],
-            trueCount: newStates[index].trueCount + shift
+            trueCount: newStates[index].trueCount + getRandomShift()
           }
           return newStates
         })
-      }, Math.random() * 5000 + 5000)
-    })
+      }, 5000 + Math.random() * 5000)
+    )
 
-    return () => {
-      intervals.forEach(interval => clearInterval(interval))
-    }
+    return () => intervals.forEach(clearInterval)
   }, [])
 
-  const handleVideoClick = (video: typeof videoStates[0], currentTime: number) => {
+  const handleVideoClick = useCallback((video: Video, currentTime: number) => {
     const params = new URLSearchParams({
       videoUrl: video.videoUrl,
       title: video.title,
@@ -140,7 +143,7 @@ export default function VideoFeed() {
       trueCount: String(video.trueCount)
     })
     router.push(`/stream?${params.toString()}`)
-  }
+  }, [router])
 
   return (
     <>
@@ -164,10 +167,7 @@ export default function VideoFeed() {
               variants={item}
               className="bg-gray-800 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-700 transition-colors"
               onClick={() => handleVideoClick(video, video.startTime)}
-              whileHover={{ 
-                scale: 1.02,
-                transition: { duration: 0.2 }
-              }}
+              whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
               whileTap={{ scale: 0.98 }}
             >
               <div className="aspect-video bg-gray-900 relative">
@@ -177,17 +177,14 @@ export default function VideoFeed() {
                   startTime={video.startTime}
                   endTime={video.endTime}
                   onTimeUpdate={(currentTime) => {
-                    video.currentTime = currentTime
+                    window.dispatchEvent(new CustomEvent('timeUpdate', { detail: currentTime }))
                   }}
                 />
               </div>
               <motion.div 
                 className="p-4"
                 initial={{ opacity: 0 }}
-                animate={{ 
-                  opacity: 1,
-                  transition: { delay: 0.2, duration: 0.3 }
-                }}
+                animate={{ opacity: 1, transition: { delay: 0.2, duration: 0.3 } }}
               >
                 <h2 className="font-semibold text-lg mb-1">{video.title}</h2>
                 <p className="text-sm text-gray-400">{video.author}</p>
@@ -199,11 +196,7 @@ export default function VideoFeed() {
                         key={video.trueCount}
                         className={`font-mono text-lg ${video.trueCount >= 0 ? 'text-green-500' : 'text-red-500'}`}
                         initial={{ opacity: 0.5, scale: 0.95 }}
-                        animate={{ 
-                          opacity: 1, 
-                          scale: 1,
-                          transition: { duration: 0.3 }
-                        }}
+                        animate={{ opacity: 1, scale: 1, transition: { duration: 0.3 } }}
                       >
                         {video.trueCount}
                       </motion.span>
@@ -212,16 +205,12 @@ export default function VideoFeed() {
                       className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-8 rounded-lg transition-colors"
                       onClick={(e) => {
                         e.stopPropagation()
-                        handleVideoClick(video, video.currentTime || video.startTime)
+                        handleVideoClick(video, video.startTime)
                       }}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ 
-                        opacity: 1, 
-                        scale: 1,
-                        transition: { delay: 0.4, duration: 0.3 }
-                      }}
+                      animate={{ opacity: 1, scale: 1, transition: { delay: 0.4, duration: 0.3 } }}
                     >
                       Stake
                     </motion.button>
