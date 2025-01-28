@@ -1,8 +1,9 @@
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, clusterApiUrl } from '@solana/web3.js'
 import { useMutation } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useTransactionToast } from '@/components/ui/ui-layout'
+import { Connection } from '@solana/web3.js'
 
 // Make sure this matches your deployed program ID
 const PROGRAM_ID = "8isGkdCJN84MgyqDSJP3q5zKWu8J66y24v29wkDBrSPT"
@@ -17,9 +18,11 @@ export function useStakingSol() {
       if (!publicKey) throw new Error("Wallet not connected")
 
       try {
+        // Ensure we're using devnet
+        const devnetConnection = new Connection(clusterApiUrl('devnet'), 'confirmed')
+        
         const programId = new PublicKey(PROGRAM_ID)
         
-        // Get the vault PDA (Program Derived Address)
         const [vaultPda] = PublicKey.findProgramAddressSync(
           [Buffer.from("vault")],
           programId
@@ -33,16 +36,15 @@ export function useStakingSol() {
           })
         )
 
-        const latestBlockhash = await connection.getLatestBlockhash('confirmed')
+        const latestBlockhash = await devnetConnection.getLatestBlockhash('confirmed')
         transaction.recentBlockhash = latestBlockhash.blockhash
         transaction.feePayer = publicKey
 
-        const signature = await sendTransaction(transaction, connection)
+        const signature = await sendTransaction(transaction, devnetConnection)
         
         console.log("Transaction sent:", signature)
         
-        // Wait for confirmation
-        const confirmation = await connection.confirmTransaction({
+        const confirmation = await devnetConnection.confirmTransaction({
           signature,
           ...latestBlockhash
         }, 'confirmed')

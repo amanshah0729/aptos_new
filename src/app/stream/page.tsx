@@ -7,6 +7,8 @@ import NavHeader from '@/components/ui/nav-header'
 import { useSearchParams } from 'next/navigation'
 import { LivestreamPlayer } from '@/components/livestream/livestream-player'
 import { useStakingSol } from '@/hooks/useStakingSol'
+import { VaultBalance } from '@/components/vault/vault-balance'
+import { IconCurrencySolana } from '@tabler/icons-react'
 
 // Sample chat messages to randomly pull from
 const SAMPLE_MESSAGES = [
@@ -263,30 +265,22 @@ export default function StreamPage() {
 
                   {/* Stake Button */}
                   <div className="pt-4 border-t border-gray-700">
-                    <motion.button 
-                      onClick={() => setIsStakeModalOpen(true)}
-                      className="relative group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 
-                      w-full px-8 py-5 rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl 
-                      border-2 border-transparent hover:border-blue-400/50"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <motion.span 
-                        className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-xl blur-xl"
-                        animate={{
-                          scale: [1, 1.1, 1],
-                          opacity: [0.5, 0.8, 0.5],
-                        }}
-                        transition={{
-                          duration: 3,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        }}
-                      />
-                      <span className="relative text-xl font-bold text-white tracking-wider">
-                        Place Your Stake
-                      </span>
-                    </motion.button>
+                    <div className="flex flex-col space-y-4">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setIsStakeModalOpen(true)}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors"
+                      >
+                        <span className="flex items-center justify-center gap-2">
+                          <IconCurrencySolana size={20} />
+                          Place Your Stake
+                        </span>
+                      </motion.button>
+                      <div className="flex items-center justify-center">
+                        <VaultBalance />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -331,6 +325,7 @@ export default function StreamPage() {
                     <div className="text-center text-lg mb-4">
                       Stake Amount: 0.1 SOL
                     </div>
+                    <VaultBalance />
                     <div className="text-sm text-gray-400 text-center mb-4">
                       {!publicKey && "Please connect your wallet to stake"}
                     </div>
