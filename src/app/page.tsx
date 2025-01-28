@@ -12,7 +12,7 @@ const videos = [
     id: 1, 
     title: "Im boutta make so much money", 
     author: "SlotMaster",
-    videoUrl: "/videos/slot-win-1.mp4",
+    videoUrl: "/videos/me.mp4",
     startTime: 10,
     endTime: 60,
     trueCount: 6
@@ -133,7 +133,10 @@ export default function VideoFeed() {
     return () => intervals.forEach(clearInterval)
   }, [])
 
-  const handleVideoClick = useCallback((video: Video, currentTime: number) => {
+  const handleVideoClick = useCallback((video: Video, currentTime: number, e?: React.MouseEvent) => {
+    // If the click came from the video player itself, don't navigate
+    if (e?.target instanceof HTMLVideoElement) return
+
     const params = new URLSearchParams({
       videoUrl: video.videoUrl,
       title: video.title,
@@ -166,7 +169,7 @@ export default function VideoFeed() {
               key={video.id}
               variants={item}
               className="bg-gray-800 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-700 transition-colors"
-              onClick={() => handleVideoClick(video, video.startTime)}
+              onClick={(e) => handleVideoClick(video, video.startTime, e)}
               whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
               whileTap={{ scale: 0.98 }}
             >
@@ -204,6 +207,7 @@ export default function VideoFeed() {
                     <motion.button 
                       className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-8 rounded-lg transition-colors"
                       onClick={(e) => {
+                        e.preventDefault()
                         e.stopPropagation()
                         handleVideoClick(video, video.startTime)
                       }}

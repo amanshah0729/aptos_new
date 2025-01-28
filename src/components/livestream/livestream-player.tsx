@@ -54,6 +54,7 @@ export function LivestreamPlayer({
         playsInline
         muted
         loop
+        onClick={(e) => e.stopPropagation()}
         onTimeUpdate={handleTimeUpdate}
       />
       <div className="absolute top-2 right-2">
