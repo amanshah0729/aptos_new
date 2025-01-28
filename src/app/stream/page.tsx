@@ -79,6 +79,8 @@ const SAMPLE_USERNAMES = [
   "BigBrain", "WiseTrader", "StatsGuru", "MathGenius"
 ];
 
+const SOL_USD_RATE = 236.58 // Current SOL price in USD
+
 export default function StreamPage() {
   const searchParams = useSearchParams()
   const videoUrl = searchParams.get('videoUrl') || ''
@@ -92,6 +94,7 @@ export default function StreamPage() {
   const [messages, setMessages] = useState<Array<{ id: number; username: string; text: string; timestamp: Date }>>([])
   const [totalWinnings, setTotalWinnings] = useState<number>(0)
   const [isStakeModalOpen, setIsStakeModalOpen] = useState(false)
+  const [stakeAmount, setStakeAmount] = useState<number>(0.01)
   
   // Add ref for chat container
   const chatContainerRef = useRef<HTMLDivElement>(null)
@@ -148,6 +151,10 @@ export default function StreamPage() {
 
   const { mutate: stake, isPending } = useStakingSol()
   const { publicKey } = useWallet()
+
+  const formatUSD = (sol: number) => {
+    return (sol * SOL_USD_RATE).toFixed(2)
+  }
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
@@ -320,27 +327,74 @@ export default function StreamPage() {
                   </button>
                 </div>
                 
-                <div className="space-y-4">
-                  <div>
-                    <div className="text-center text-lg mb-4">
-                      Stake Amount: 0.1 SOL
-                    </div>
-                    <VaultBalance />
-                    <div className="text-sm text-gray-400 text-center mb-4">
-                      {!publicKey && "Please connect your wallet to stake"}
+                <div className="space-y-6">
+                  {/* Preset Amount Buttons */}
+                  <div className="grid grid-cols-3 gap-3">
+                    {[0.01, 0.05, 0.1].map((amount) => (
+                      <motion.button
+                        key={amount}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setStakeAmount(amount)}
+                        className={`py-2 px-4 rounded-lg font-medium transition-colors ${
+                          stakeAmount === amount 
+                            ? 'bg-blue-600 text-white' 
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center">
+                          <span>{amount} SOL</span>
+                          <span className="text-xs text-gray-400">${formatUSD(amount)}</span>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+
+                  {/* Custom Amount Input */}
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-400">Custom amount</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        value={stakeAmount}
+                        onChange={(e) => setStakeAmount(Number(e.target.value))}
+                        className="w-full bg-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter SOL amount"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-right">
+                        <span className="text-gray-400 block">SOL</span>
+                        <span className="text-xs text-gray-500 block">
+                          ${formatUSD(stakeAmount)}
+                        </span>
+                      </div>
                     </div>
                   </div>
+
+                  <VaultBalance />
                   
-                  <button 
+                  <div className="text-sm text-gray-400 text-center">
+                    {!publicKey && "Please connect your wallet to stake"}
+                  </div>
+
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     className="w-full bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => {
-                      stake()
+                      stake(stakeAmount)
                       setIsStakeModalOpen(false)
                     }}
-                    disabled={!publicKey || isPending}
+                    disabled={!publicKey || isPending || !stakeAmount || stakeAmount < 0.01}
                   >
-                    {isPending ? 'Processing...' : 'Confirm Stake (0.1 SOL)'}
-                  </button>
+                    {isPending ? 'Processing...' : (
+                      <div className="flex flex-col items-center">
+                        <span>Confirm Stake ({stakeAmount} SOL)</span>
+                        <span className="text-sm text-blue-300">${formatUSD(stakeAmount)}</span>
+                      </div>
+                    )}
+                  </motion.button>
                 </div>
               </div>
             </motion.div>

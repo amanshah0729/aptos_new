@@ -14,7 +14,7 @@ export function useStakingSol() {
   const transactionToast = useTransactionToast()
 
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (amount: number) => {
       if (!publicKey) throw new Error("Wallet not connected")
 
       try {
@@ -32,7 +32,7 @@ export function useStakingSol() {
           SystemProgram.transfer({
             fromPubkey: publicKey,
             toPubkey: vaultPda,
-            lamports: 0.1 * LAMPORTS_PER_SOL,
+            lamports: amount * LAMPORTS_PER_SOL,
           })
         )
 
@@ -61,7 +61,7 @@ export function useStakingSol() {
     },
     onSuccess: (signature) => {
       transactionToast(signature)
-      toast.success('Successfully staked 0.1 SOL')
+      toast.success('Successfully staked SOL')
     },
     onError: (error: Error) => {
       console.error("Staking error:", error)
