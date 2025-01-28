@@ -171,15 +171,27 @@ export default function VideoFeed() {
               whileTap={{ scale: 0.98 }}
             >
               <div className="aspect-video bg-gray-900 relative">
-                <LivestreamPlayer 
-                  videoUrl={video.videoUrl}
-                  title={video.title}
-                  startTime={video.startTime}
-                  endTime={video.endTime}
-                  onTimeUpdate={(currentTime) => {
-                    video.startTime = currentTime
-                  }}
-                />
+              <LivestreamPlayer 
+                videoUrl={video.videoUrl}
+                title={video.title}
+                startTime={video.startTime}
+                endTime={video.endTime}
+                onTimeUpdate={(currentTime) => {
+                  video.startTime = currentTime;
+
+                  // Only apply this logic for video ID 1
+                  if (video.id === 1) {
+                    const frameRate = 30; // Assume 30 FPS
+                    const currentFrame = Math.floor(currentTime * frameRate);
+
+                    // Log every 40th frame
+                    if (currentFrame % 1 === 0) {
+                      console.log(`Video 1, Frame: ${currentFrame}, Time: ${currentTime.toFixed(2)}s`);
+                    }
+                  }
+                }}
+              />
+
               </div>
               <motion.div 
                 className="p-4"
