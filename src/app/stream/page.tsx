@@ -314,9 +314,9 @@ export default function StreamPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-50"
+              className="fixed inset-0 flex items-center justify-center z-50 p-4"
             >
-              <div className="bg-gray-800 rounded-xl p-6 shadow-xl">
+              <div className="bg-gray-800 rounded-xl p-6 shadow-xl border border-gray-700 w-full max-w-md">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-xl font-semibold">Place Your Stake</h3>
                   <button 
