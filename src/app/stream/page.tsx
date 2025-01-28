@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import NavHeader from '@/components/ui/nav-header'
 import { useSearchParams } from 'next/navigation'
 import { LivestreamPlayer } from '@/components/livestream/livestream-player'
+import { useStakingSol } from '@/hooks/useStakingSol'
 
 // Sample chat messages to randomly pull from
 const SAMPLE_MESSAGES = [
@@ -142,6 +143,9 @@ export default function StreamPage() {
       clearInterval(burstInterval)
     }
   }, [])
+
+  const { mutate: stake, isPending } = useStakingSol()
+  const { publicKey } = useWallet()
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
@@ -324,22 +328,23 @@ export default function StreamPage() {
                 
                 <div className="space-y-4">
                   <div>
-                    <input 
-                      type="number"
-                      className="w-full bg-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
-                      placeholder="0.00"
-                    />
-                    <div className="flex justify-between text-sm text-gray-400 mt-2">
-                      <span>Min: 0.1 SOL</span>
-                      <span>Max: 10 SOL</span>
+                    <div className="text-center text-lg mb-4">
+                      Stake Amount: 0.1 SOL
+                    </div>
+                    <div className="text-sm text-gray-400 text-center mb-4">
+                      {!publicKey && "Please connect your wallet to stake"}
                     </div>
                   </div>
                   
                   <button 
-                    className="w-full bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors font-medium text-lg"
-                    onClick={() => setIsStakeModalOpen(false)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => {
+                      stake()
+                      setIsStakeModalOpen(false)
+                    }}
+                    disabled={!publicKey || isPending}
                   >
-                    Confirm Stake
+                    {isPending ? 'Processing...' : 'Confirm Stake (0.1 SOL)'}
                   </button>
                 </div>
               </div>
