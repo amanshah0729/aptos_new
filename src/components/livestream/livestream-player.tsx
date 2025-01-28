@@ -49,15 +49,14 @@ export function LivestreamPlayer({
     <div className={className}>
       <video
         ref={videoRef}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover absolute inset-0"
         src={videoUrl}
         playsInline
         muted
         loop
-        onClick={(e) => e.stopPropagation()}
         onTimeUpdate={handleTimeUpdate}
       />
-      <div className="absolute top-2 right-2">
+      <div className="absolute top-2 right-2 z-10">
         <span className="px-2 py-1 text-sm font-semibold bg-red-600 text-white rounded">
           LIVE
         </span>

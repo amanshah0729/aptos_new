@@ -166,15 +166,15 @@ export default function StreamPage() {
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="w-full h-[calc(100vh-140px)] bg-gray-800 rounded-lg relative overflow-hidden"
+              className="w-full h-full bg-gray-800 rounded-lg relative overflow-hidden"
             >
-              <div className="w-full h-full flex items-center justify-center">
+              <div className="absolute inset-0">
                 <LivestreamPlayer 
                   videoUrl={videoUrl}
                   title={title}
                   startTime={startTime}
                   endTime={endTime}
-                  className="w-full aspect-video relative"
+                  className="w-full h-full relative"
                 />
               </div>
               

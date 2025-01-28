@@ -133,10 +133,7 @@ export default function VideoFeed() {
     return () => intervals.forEach(clearInterval)
   }, [])
 
-  const handleVideoClick = useCallback((video: Video, currentTime: number, e?: React.MouseEvent) => {
-    // If the click came from the video player itself, don't navigate
-    if (e?.target instanceof HTMLVideoElement) return
-
+  const handleVideoClick = useCallback((video: Video, currentTime: number) => {
     const params = new URLSearchParams({
       videoUrl: video.videoUrl,
       title: video.title,
@@ -169,7 +166,7 @@ export default function VideoFeed() {
               key={video.id}
               variants={item}
               className="bg-gray-800 rounded-lg overflow-hidden cursor-pointer hover:bg-gray-700 transition-colors"
-              onClick={(e) => handleVideoClick(video, video.startTime, e)}
+              onClick={(e) => handleVideoClick(video, video.startTime)}
               whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
               whileTap={{ scale: 0.98 }}
             >
@@ -180,7 +177,7 @@ export default function VideoFeed() {
                   startTime={video.startTime}
                   endTime={video.endTime}
                   onTimeUpdate={(currentTime) => {
-                    window.dispatchEvent(new CustomEvent('timeUpdate', { detail: currentTime }))
+                    video.startTime = currentTime
                   }}
                 />
               </div>
