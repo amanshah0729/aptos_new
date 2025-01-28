@@ -6,6 +6,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import NavHeader from '@/components/ui/nav-header'
 import { useSearchParams } from 'next/navigation'
 import { LivestreamPlayer } from '@/components/livestream/livestream-player'
+import { useStakingSol } from '@/hooks/useStakingSol'
+import { VaultBalance } from '@/components/vault/vault-balance'
+import { IconCurrencySolana } from '@tabler/icons-react'
 
 // Sample chat messages to randomly pull from
 const SAMPLE_MESSAGES = [
@@ -76,6 +79,8 @@ const SAMPLE_USERNAMES = [
   "BigBrain", "WiseTrader", "StatsGuru", "MathGenius"
 ];
 
+const SOL_USD_RATE = 236.58 // Current SOL price in USD
+
 export default function StreamPage() {
   const searchParams = useSearchParams()
   const videoUrl = searchParams.get('videoUrl') || ''
@@ -89,6 +94,7 @@ export default function StreamPage() {
   const [messages, setMessages] = useState<Array<{ id: number; username: string; text: string; timestamp: Date }>>([])
   const [totalWinnings, setTotalWinnings] = useState<number>(0)
   const [isStakeModalOpen, setIsStakeModalOpen] = useState(false)
+  const [stakeAmount, setStakeAmount] = useState<number>(0.01)
   
   // Add ref for chat container
   const chatContainerRef = useRef<HTMLDivElement>(null)
@@ -142,6 +148,13 @@ export default function StreamPage() {
       clearInterval(burstInterval)
     }
   }, [])
+
+  const { mutate: stake, isPending } = useStakingSol()
+  const { publicKey } = useWallet()
+
+  const formatUSD = (sol: number) => {
+    return (sol * SOL_USD_RATE).toFixed(2)
+  }
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
@@ -259,30 +272,22 @@ export default function StreamPage() {
 
                   {/* Stake Button */}
                   <div className="pt-4 border-t border-gray-700">
-                    <motion.button 
-                      onClick={() => setIsStakeModalOpen(true)}
-                      className="relative group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 
-                      w-full px-8 py-5 rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl 
-                      border-2 border-transparent hover:border-blue-400/50"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <motion.span 
-                        className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-xl blur-xl"
-                        animate={{
-                          scale: [1, 1.1, 1],
-                          opacity: [0.5, 0.8, 0.5],
-                        }}
-                        transition={{
-                          duration: 3,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        }}
-                      />
-                      <span className="relative text-xl font-bold text-white tracking-wider">
-                        Place Your Stake
-                      </span>
-                    </motion.button>
+                    <div className="flex flex-col space-y-4">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setIsStakeModalOpen(true)}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors"
+                      >
+                        <span className="flex items-center justify-center gap-2">
+                          <IconCurrencySolana size={20} />
+                          Place Your Stake
+                        </span>
+                      </motion.button>
+                      <div className="flex items-center justify-center">
+                        <VaultBalance />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -322,25 +327,74 @@ export default function StreamPage() {
                   </button>
                 </div>
                 
-                <div className="space-y-4">
-                  <div>
-                    <input 
-                      type="number"
-                      className="w-full bg-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
-                      placeholder="0.00"
-                    />
-                    <div className="flex justify-between text-sm text-gray-400 mt-2">
-                      <span>Min: 0.1 SOL</span>
-                      <span>Max: 10 SOL</span>
+                <div className="space-y-6">
+                  {/* Preset Amount Buttons */}
+                  <div className="grid grid-cols-3 gap-3">
+                    {[0.01, 0.05, 0.1].map((amount) => (
+                      <motion.button
+                        key={amount}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setStakeAmount(amount)}
+                        className={`py-2 px-4 rounded-lg font-medium transition-colors ${
+                          stakeAmount === amount 
+                            ? 'bg-blue-600 text-white' 
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center">
+                          <span>{amount} SOL</span>
+                          <span className="text-xs text-gray-400">${formatUSD(amount)}</span>
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+
+                  {/* Custom Amount Input */}
+                  <div className="space-y-2">
+                    <label className="text-sm text-gray-400">Custom amount</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        value={stakeAmount}
+                        onChange={(e) => setStakeAmount(Number(e.target.value))}
+                        className="w-full bg-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter SOL amount"
+                      />
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-right">
+                        <span className="text-gray-400 block">SOL</span>
+                        <span className="text-xs text-gray-500 block">
+                          ${formatUSD(stakeAmount)}
+                        </span>
+                      </div>
                     </div>
                   </div>
+
+                  <VaultBalance />
                   
-                  <button 
-                    className="w-full bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors font-medium text-lg"
-                    onClick={() => setIsStakeModalOpen(false)}
+                  <div className="text-sm text-gray-400 text-center">
+                    {!publicKey && "Please connect your wallet to stake"}
+                  </div>
+
+                  <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => {
+                      stake(stakeAmount)
+                      setIsStakeModalOpen(false)
+                    }}
+                    disabled={!publicKey || isPending || !stakeAmount || stakeAmount < 0.01}
                   >
-                    Confirm Stake
-                  </button>
+                    {isPending ? 'Processing...' : (
+                      <div className="flex flex-col items-center">
+                        <span>Confirm Stake ({stakeAmount} SOL)</span>
+                        <span className="text-sm text-blue-300">${formatUSD(stakeAmount)}</span>
+                      </div>
+                    )}
+                  </motion.button>
                 </div>
               </div>
             </motion.div>
