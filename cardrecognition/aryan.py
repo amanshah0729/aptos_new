@@ -5,7 +5,20 @@ import numpy as np
 from inference import InferencePipeline
 from openai import OpenAI
 import base64
-client = OpenAI(api_key="")
+from openai import OpenAI
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from the .env file
+load_dotenv()
+
+# Fetch the API key from the environment variables
+APIKEY = os.getenv("APIKEY")
+api_key = "HpBkIffDEtYNDvR09xhS"
+
+
+client = OpenAI(api_key=APIKEY)
+
 # Import the built in render_boxes sink for visualizing results
 from inference.core.interfaces.stream.sinks import render_boxes
 counter = 0
