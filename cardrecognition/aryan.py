@@ -104,20 +104,6 @@ def onprediction(predictions, video_frame):
                 counter = 0
     else:
         counter = counter + 1
-    '''
-    x = int(predictions['predictions'][0]['x'])
-    y = int(predictions['predictions'][0]['y'])
-    width = int(predictions['predictions'][0]['width'])
-    height = int(predictions['predictions'][0]['height'])
-    print("X: " + str(x))
-    print("Y: " + str(y))
-    print("W: " + str(width))
-    print("H: " + str(height))
-
-    cropped_image = crop_image(video_frame.image, x, y, width, height)
-    cv2.imwrite(os.path.join(OUTPUT_FOLDER, "box" + str(x) + str(y) + str(width) + str(height) + ".jpg"), cropped_image)
-    '''
-
 # initialize a pipeline object
 pipeline = InferencePipeline.init(
     model_id="cards-mjsx0/3", # Roboflow model to use #playing-cards-ow27d/4 #cards-mjsx0/3

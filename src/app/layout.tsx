@@ -3,6 +3,7 @@ import {ClusterProvider} from '@/components/cluster/cluster-data-access'
 import {SolanaProvider} from '@/components/solana/solana-provider'
 import {UiLayout} from '@/components/ui/ui-layout'
 import {ReactQueryProvider} from './react-query-provider'
+import { AptosWalletAdapterProvider } from "@aptos-labs/wallet-adapter-react";
 
 export const metadata = {
   title: 'Placeholder',
@@ -14,6 +15,16 @@ const links: { label: string; path: string }[] = [
   { label: 'Clusters', path: '/clusters' },
   { label: 'Counter Program', path: '/counter' },
 ]
+
+// Aptos wallet configuration
+const optInWallets = ["Petra"];
+
+const dappInfo = {
+  aptosConnect: {
+    dappName: "Placeholder", // Using the same name as in metadata
+    dappImageURI: "/favicon.ico" // Using default favicon path
+  },
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

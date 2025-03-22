@@ -25,19 +25,15 @@ openai.api_key = os.getenv("APIKEY")
 def process_image_and_chat(url):
     """
     Processes an image and uses OpenAI's GPT model to interact with the image as part of the prompt.
-
     Args:
         image_path (str): url to the image .
-
     Returns:
         str: AI response text from OpenAI's chat model.
     """
     global count
     global deck
-
     # Make the API call
     try:
-
         response = openai.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -58,14 +54,8 @@ def process_image_and_chat(url):
         )
         final = response.choices[0].message.content.strip()
         print(final)
-        
-        #count = high_low_count(deck, final, count)
-
-        #print(count)
         count, deck = high_low_count(deck, final, count)
         return final
-    
-    
     except Exception as e:
         print("error")
         return f"An error occurred: {e}"

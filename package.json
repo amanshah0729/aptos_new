@@ -13,6 +13,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aptos-labs/wallet-adapter-react": "^4.1.4",
     "@coral-xyz/anchor": "^0.30.1",
     "@solana/spl-token": "^0.4.8",
     "@solana/wallet-adapter-backpack": "^0.1.14",
@@ -39,7 +40,8 @@
     "react-icons": "^5.4.0",
     "react-youtube": "^10.1.0",
     "tailwind-merge": "^2.6.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "ws": "^8.18.1"
   },
   "devDependencies": {
     "@types/bn.js": "^5.1.0",

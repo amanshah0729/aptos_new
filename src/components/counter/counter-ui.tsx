@@ -9,6 +9,7 @@ import { useCounterProgram, useCounterProgramAccount } from './counter-data-acce
 export function CounterCreate() {
   const { initialize } = useCounterProgram()
 
+
   return (
     <button
       className="btn btn-xs lg:btn-md btn-primary"
@@ -39,7 +40,7 @@ export function CounterList() {
         <span className="loading loading-spinner loading-lg"></span>
       ) : accounts.data?.length ? (
         <div className="grid md:grid-cols-2 gap-4">
-          {accounts.data?.map((account) => (
+          {accounts.data?.map((account: { publicKey: PublicKey }) => (
             <CounterCard key={account.publicKey.toString()} account={account.publicKey} />
           ))}
         </div>
