@@ -81,6 +81,13 @@ const SAMPLE_USERNAMES = [
 
 const APT_USD_RATE = 8.25 // Current APT price in USD
 
+const AptosLogo = () => (
+  <svg width="16" height="16" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline-block mr-2">
+    <path d="M52.1071 57.8571H27.8929L20 40L40 8.57143L60 40L52.1071 57.8571Z" stroke="currentColor" strokeWidth="5" strokeMiterlimit="10" strokeLinejoin="round"/>
+    <path d="M40 71.4286L27.8929 57.8571H52.1071L40 71.4286Z" stroke="currentColor" strokeWidth="5" strokeMiterlimit="10" strokeLinejoin="round"/>
+  </svg>
+);
+
 export default function StreamPage() {
   const searchParams = useSearchParams()
   const videoUrl = searchParams.get('videoUrl') || ''
@@ -172,7 +179,7 @@ export default function StreamPage() {
       const response = await signAndSubmitTransaction({
         sender: account.address,
         data: {
-          function: "0xf35bcd719232752ad3b3025fc5f82189727174601962ed27578a585bcd3e4615::message_board::deposit",
+          function: "0x6d5363db550862fb6fdc64ce2a60ff59486a111d53576d3fd70f2c5ebd14b3b1::message_board::deposit",
           functionArguments: [amountInOctas],
           typeArguments: []
         }
@@ -430,7 +437,10 @@ export default function StreamPage() {
                   >
                     {isPending ? 'Processing...' : (
                       <div className="flex flex-col items-center">
-                        <span>Confirm Stake ({stakeAmount} APT)</span>
+                        <span className="flex items-center">
+                          <AptosLogo />
+                          Confirm Stake ({stakeAmount} APT)
+                        </span>
                         <span className="text-sm text-blue-300">${formatUSD(stakeAmount)}</span>
                       </div>
                     )}
@@ -460,7 +470,10 @@ export default function StreamPage() {
                     </svg>
                   </div>
                   <div className="ml-3 flex-1">
-                    <p className="text-sm font-medium">Transaction Submitted!</p>
+                    <p className="text-sm font-medium flex items-center">
+                      <AptosLogo />
+                      Transaction Submitted!
+                    </p>
                     <p className="mt-1 text-sm text-green-200">Your stake has been successfully submitted to the blockchain.</p>
                     <div className="mt-3">
                       <a 
@@ -469,6 +482,7 @@ export default function StreamPage() {
                         rel="noopener noreferrer"
                         className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                       >
+                        <AptosLogo />
                         View on Explorer
                       </a>
                     </div>
