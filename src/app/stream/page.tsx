@@ -1,14 +1,14 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useConnection, useWallet } from '@solana/wallet-adapter-react'
+import { useWallet } from '@aptos-labs/wallet-adapter-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import NavHeader from '@/components/ui/nav-header'
 import { useSearchParams } from 'next/navigation'
 import { LivestreamPlayer } from '@/components/livestream/livestream-player'
-import { useStakingSol } from '@/hooks/useStakingSol'
+import { useStakingAptos } from '@/hooks/useStakingAptos'
 import { VaultBalance } from '@/components/vault/vault-balance'
-import { IconCurrencySolana } from '@tabler/icons-react'
+import { AptosClient, Types } from 'aptos'
 
 // Sample chat messages to randomly pull from
 const SAMPLE_MESSAGES = [
@@ -79,7 +79,7 @@ const SAMPLE_USERNAMES = [
   "BigBrain", "WiseTrader", "StatsGuru", "MathGenius"
 ];
 
-const SOL_USD_RATE = 236.58 // Current SOL price in USD
+const APT_USD_RATE = 8.25 // Current APT price in USD
 
 export default function StreamPage() {
   const searchParams = useSearchParams()
@@ -91,7 +91,7 @@ export default function StreamPage() {
   const trueCount = Number(searchParams.get('trueCount')) || 0
 
   const [count, setCount] = useState<number>(0)
-  const [messages, setMessages] = useState<Array<{ id: number; username: string; text: string; timestamp: Date }>>([])
+  const [messages, setMessages] = useState<Array<{ id: string; username: string; text: string; timestamp: Date }>>([])
   const [totalWinnings, setTotalWinnings] = useState<number>(0)
   const [isStakeModalOpen, setIsStakeModalOpen] = useState(false)
   const [stakeAmount, setStakeAmount] = useState<number>(0.01)
@@ -112,10 +112,13 @@ export default function StreamPage() {
       const randomMessage = SAMPLE_MESSAGES[Math.floor(Math.random() * SAMPLE_MESSAGES.length)]
       const randomUsername = SAMPLE_USERNAMES[Math.floor(Math.random() * SAMPLE_USERNAMES.length)]
       
+      // Generate a truly unique ID using timestamp + random string
+      const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      
       setMessages(prev => [
         ...prev.slice(-49),
         {
-          id: Date.now(),
+          id: uniqueId,
           username: randomUsername,
           text: randomMessage,
           timestamp: new Date()
@@ -149,11 +152,37 @@ export default function StreamPage() {
     }
   }, [])
 
-  const { mutate: stake, isPending } = useStakingSol()
-  const { publicKey } = useWallet()
+  const { mutate: stake, isPending } = useStakingAptos()
+  const { account, signAndSubmitTransaction } = useWallet()
 
-  const formatUSD = (sol: number) => {
-    return (sol * SOL_USD_RATE).toFixed(2)
+  const formatUSD = (apt: number) => {
+    return (apt * APT_USD_RATE).toFixed(2)
+  }
+
+  // Function to call the staking smart contract
+  const stakeOnContract = async (amount: number) => {
+    if (!account) return;
+    
+    try {
+      // Convert APT to octas (1 APT = 10^8 octas)
+      const amountInOctas = Math.floor(amount * 100000000).toString();
+      
+      const response = await signAndSubmitTransaction({
+        sender: account.address,
+        data: {
+          function: "0xf35bcd719232752ad3b3025fc5f82189727174601962ed27578a585bcd3e4615::message_board::deposit",
+          functionArguments: [amountInOctas],
+          typeArguments: []
+        }
+      });
+      
+      console.log("Staking transaction successful:", response);
+      
+      // Update UI or state as needed
+      setTotalWinnings(prev => prev + amount * APT_USD_RATE);
+    } catch (error) {
+      console.error("Staking transaction failed:", error);
+    }
   }
 
   return (
@@ -279,8 +308,7 @@ export default function StreamPage() {
                         onClick={() => setIsStakeModalOpen(true)}
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors"
                       >
-                        <span className="flex items-center justify-center gap-2">
-                          <IconCurrencySolana size={20} />
+                        <span className="flex items-center justify-center">
                           Place Your Stake
                         </span>
                       </motion.button>
@@ -343,7 +371,7 @@ export default function StreamPage() {
                         }`}
                       >
                         <div className="flex flex-col items-center">
-                          <span>{amount} SOL</span>
+                          <span>{amount} APT</span>
                           <span className="text-xs text-gray-400">${formatUSD(amount)}</span>
                         </div>
                       </motion.button>
@@ -361,10 +389,10 @@ export default function StreamPage() {
                         value={stakeAmount}
                         onChange={(e) => setStakeAmount(Number(e.target.value))}
                         className="w-full bg-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Enter SOL amount"
+                        placeholder="Enter APT amount"
                       />
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 text-right">
-                        <span className="text-gray-400 block">SOL</span>
+                        <span className="text-gray-400 block">APT</span>
                         <span className="text-xs text-gray-500 block">
                           ${formatUSD(stakeAmount)}
                         </span>
@@ -375,7 +403,7 @@ export default function StreamPage() {
                   <VaultBalance />
                   
                   <div className="text-sm text-gray-400 text-center">
-                    {!publicKey && "Please connect your wallet to stake"}
+                    {!account && "Please connect your wallet to stake"}
                   </div>
 
                   <motion.button 
@@ -383,14 +411,14 @@ export default function StreamPage() {
                     whileTap={{ scale: 0.98 }}
                     className="w-full bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => {
-                      stake(stakeAmount)
-                      setIsStakeModalOpen(false)
+                      stakeOnContract(stakeAmount);
+                      setIsStakeModalOpen(false);
                     }}
-                    disabled={!publicKey || isPending || !stakeAmount || stakeAmount < 0.01}
+                    disabled={!account || isPending || !stakeAmount || stakeAmount < 0.01}
                   >
                     {isPending ? 'Processing...' : (
                       <div className="flex flex-col items-center">
-                        <span>Confirm Stake ({stakeAmount} SOL)</span>
+                        <span>Confirm Stake ({stakeAmount} APT)</span>
                         <span className="text-sm text-blue-300">${formatUSD(stakeAmount)}</span>
                       </div>
                     )}

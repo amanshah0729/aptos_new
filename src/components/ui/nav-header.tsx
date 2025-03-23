@@ -1,6 +1,6 @@
 'use client'
 
-import { WalletButton } from '@/components/solana/solana-provider'
+import { WalletSelector } from '@/components/aptos/wallet-selector'
 import { RiPokerSpadesFill } from 'react-icons/ri'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -57,7 +57,7 @@ export default function NavHeader() {
             </AnimatePresence>
           </div>
 
-          <WalletButton />
+          <WalletSelector />
         </div>
       </div>
     </div>
