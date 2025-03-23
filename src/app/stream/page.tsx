@@ -95,6 +95,8 @@ export default function StreamPage() {
   const [totalWinnings, setTotalWinnings] = useState<number>(0)
   const [isStakeModalOpen, setIsStakeModalOpen] = useState(false)
   const [stakeAmount, setStakeAmount] = useState<number>(0.01)
+  const [txnHash, setTxnHash] = useState<string | null>(null)
+  const [showTxnSuccess, setShowTxnSuccess] = useState(false)
   
   // Add ref for chat container
   const chatContainerRef = useRef<HTMLDivElement>(null)
@@ -178,8 +180,18 @@ export default function StreamPage() {
       
       console.log("Staking transaction successful:", response);
       
+      // Store the transaction hash and show success popup
+      setTxnHash(response.hash);
+      setShowTxnSuccess(true);
+      
       // Update UI or state as needed
       setTotalWinnings(prev => prev + amount * APT_USD_RATE);
+      
+      // Auto-hide the popup after 10 seconds
+      setTimeout(() => {
+        setShowTxnSuccess(false);
+      }, 10000);
+      
     } catch (error) {
       console.error("Staking transaction failed:", error);
     }
@@ -423,6 +435,55 @@ export default function StreamPage() {
                       </div>
                     )}
                   </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Transaction Success Popup */}
+      <AnimatePresence>
+        {showTxnSuccess && txnHash && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed bottom-4 right-4 z-50"
+            >
+              <div className="bg-green-800 text-white p-4 rounded-lg shadow-lg border border-green-700 max-w-md">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <div className="ml-3 flex-1">
+                    <p className="text-sm font-medium">Transaction Submitted!</p>
+                    <p className="mt-1 text-sm text-green-200">Your stake has been successfully submitted to the blockchain.</p>
+                    <div className="mt-3">
+                      <a 
+                        href={`https://explorer.aptoslabs.com/txn/${txnHash}?network=devnet`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                      >
+                        View on Explorer
+                      </a>
+                    </div>
+                  </div>
+                  <div className="ml-4 flex-shrink-0 flex">
+                    <button
+                      className="bg-green-800 rounded-md inline-flex text-green-200 hover:text-white focus:outline-none"
+                      onClick={() => setShowTxnSuccess(false)}
+                    >
+                      <span className="sr-only">Close</span>
+                      <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
